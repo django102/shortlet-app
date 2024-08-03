@@ -1,0 +1,34 @@
+{
+  "name": "shortlet-app",
+  "version": "1.0.0",
+  "description": "Shortlet Assessment App",
+  "main": "src/app.ts",
+  "repository": "https://github.com/django102/shortlet-app.git",
+  "author": "Wale K. Santos <eighteen.eighty.one@outlook.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc --skipLibCheck",
+    "start": "tsc --build && node ./dist/app.js",
+    "lint": "tslint -c tslint.json --fix \"src/**/*.ts\"",
+    "ts:watch": "tsc -w"
+  },
+  "dependencies": {
+    "@types/node": "^22.1.0",
+    "axios": "^1.7.3",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "moment": "^2.30.1",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.2",
+    "querystring": "^0.2.1",
+    "redis": "^4.7.0",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.4",
+    "yarn": "^1.22.22"
+  }
+}

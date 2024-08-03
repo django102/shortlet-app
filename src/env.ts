@@ -57,4 +57,7 @@ export const env = {
             password: getOsEnvWithDefault("REDIS_PASSWORD", ""),
         },
     },
+    services: {
+        restCountries: getOsEnv("REST_COUNTRIES_API_URL")
+    }
 };

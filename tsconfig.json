@@ -2,17 +2,12 @@
     "compilerOptions": {
         "target": "es6",
         "module": "commonjs",
+        "pretty": true,
         "sourceMap": true,
-        "outDir": "./dist/",
+        "outDir": "dist",
+        "importHelpers": true,
         "strict": true,
         "noImplicitAny": false,
-        "allowSyntheticDefaultImports": true,
-        "experimentalDecorators": true,
-        "esModuleInterop": true,
-        "resolveJsonModule": true,
-        
-        "pretty": true,
-        "importHelpers": true,
         "strictNullChecks": false,
         "noImplicitThis": true,
         "alwaysStrict": true,
@@ -22,7 +17,11 @@
         "noFallthroughCasesInSwitch": true,
         "moduleResolution": "node",
         "baseUrl": ".",
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
         "lib": [
             "es5",
             "es6",
@@ -38,5 +37,8 @@
             "es2015.symbol.wellknown",
             "esnext.asynciterable"
         ]
-    }
+    },
+    "include": [
+        "src/**/*"
+    ]
 }

@@ -2,7 +2,7 @@ import axios from "axios";
 import querystring from "querystring";
 
 
-const getResource = async (baseUrl: string, path: string, query: any) => {
+const getResource = async (baseUrl: string, path?: string, query?: any) => {
     try {
         const filters = querystring.stringify(query);
         const url = `${path}${filters && `?${filters}`}`;

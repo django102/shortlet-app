@@ -58,6 +58,8 @@ export const env = {
         },
     },
     services: {
-        restCountries: getOsEnv("REST_COUNTRIES_API_URL")
+        restCountries: {
+            baseUrl: getOsEnv("REST_COUNTRIES_API_URL")
+        }
     }
 };

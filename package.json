@@ -15,6 +15,7 @@
     "ts:watch": "tsc -w"
   },
   "dependencies": {
+    "@redis/json": "^1.0.7",
     "@types/node": "^22.1.0",
     "axios": "^1.7.3",
     "body-parser": "^1.20.2",

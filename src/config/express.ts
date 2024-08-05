@@ -2,7 +2,7 @@ import helmet from "helmet";
 import cors from "cors";
 
 import { Application, json, urlencoded, Request, Response } from 'express';
-import router from "../routes";
+import router from "../api/routes";
 
 
 const corsOptions = {

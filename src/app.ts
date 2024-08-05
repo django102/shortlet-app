@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 import { mongoUri } from "./config/mongodb";
 import { redisClient } from "./config/redis";
-import { RunSchedules, scheduleList } from "./services/CronService";
+import { RunSchedules, scheduleList } from "./api/services/CronService";
 
 
 const app: express.Application = express();

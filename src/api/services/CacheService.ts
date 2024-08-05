@@ -1,4 +1,4 @@
-import { redisClient } from "../config/redis";
+import { redisClient } from "../../config/redis";
 
 const EX = 86400; // 24 hours expiry time, in seconds
 

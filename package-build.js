@@ -21,7 +21,7 @@ const build = () => {
         console.log('Temporary directory removed.');
 
         console.log("\n")
-        console.log("\nBuild Completed")
+        console.log("Build Completed")
         console.log("\n")
     } catch (error) {
         console.error('Build process failed:', error.message);

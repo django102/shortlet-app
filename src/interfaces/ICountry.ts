@@ -12,6 +12,7 @@ export interface ICountry {
     flags?: Flag[];
     maps?: Map[];
     population?: number;
+    area?: number;
     timezones?: string[];
     createdAt?: Date;
     updatedAt?: Date;

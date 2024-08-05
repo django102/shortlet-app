@@ -14,6 +14,7 @@ const mapCountryResponseToObject = (data: any): ICountry => {
     country.flags = data.flags;
     country.maps = data.maps;
     country.population = data.population;
+    country.area = data.area;
     country.timezones = data.timezones;
 
     return country;

@@ -1,10 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { ICountry } from '../../interfaces/ICountry';
-// import Flag from '../Flag';
-// import Map from '../Map';
 import { Currency, Flag, Map } from '../mongoose/CustomTypes';
-// import Flag from '../mongoose/CustomTypes';
-// import Currency from '../Currency';
 
 
 const countrySchema = new Schema<ICountry>(
@@ -30,7 +26,7 @@ const countrySchema = new Schema<ICountry>(
             type: [String],
         },
         location: {
-            type: [Number],
+            type: [Schema.Types.Number],
         },
         flag: {
             type: String,
@@ -45,12 +41,20 @@ const countrySchema = new Schema<ICountry>(
             type: Number,
             required: true
         },
+        area: {
+            type: Schema.Types.Number,
+            required: true
+        },
         timezones: {
             type: [String],
         },
     },
-    { timestamps: true },
+    { timestamps: true, collation: { locale: 'en_US', strength: 2 } },
 );
+
+countrySchema.index({ name: 1 });
+countrySchema.index({ region: 1 });
+
 
 const Country = model<ICountry>('country', countrySchema);
 export default Country;

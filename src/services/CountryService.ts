@@ -10,6 +10,7 @@ import CacheService from "./CacheService";
 import ResponseHandler from "../handlers/ResponseHandler";
 
 
+
 export const CountryService = {
     getAllCountriesFromService: async (req: Request, res: Response): Promise<Response> => {
         try {
@@ -59,6 +60,30 @@ export const CountryService = {
             await CacheService.jsonSet(redisKey, { data: countries, meta: { page, pageSize, total: countriesCount, pageCount: totalPages } })
 
             return ApiResponse.success(res, ResponseStatus.OK, "Countries successfully retrieved", countries, { page, pageSize, total: countriesCount, pageCount: totalPages });
+        } catch (err: any) {
+            return ResponseHandler.ErrorResponse(res, err);
+        }
+    },
+
+    getCountry: async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const { params } = req;
+            const { name } = params;
+
+            const redisKey = `countries:${name.toLowerCase()}`;
+            const cachedResult = await CacheService.jsonGet(redisKey);
+            if (cachedResult) {
+                return ApiResponse.success(res, ResponseStatus.OK, "Country successfully retrieved", cachedResult[0].data);
+            }
+
+            const country = await Country.findOne({ name });
+
+            if (!country) {
+                return ApiResponse.error(res, ResponseStatus.NOT_FOUND, `No country information was found for ${name}`);
+            }
+
+            await CacheService.jsonSet(redisKey, { data: country })
+            return ApiResponse.success(res, ResponseStatus.OK, "Country successfully retrieved", country);
         } catch (err: any) {
             return ResponseHandler.ErrorResponse(res, err);
         }

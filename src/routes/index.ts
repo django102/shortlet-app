@@ -8,16 +8,17 @@ const router: Router = Router();
 router.get("/", (req, res) => res.send({ message: 'Welcome' }));
 
 
-router.get("/all", JobController.getAllCountriesFromService);
+router.get("/job/allCountries", JobController.getAllCountriesFromService);
 
 
 router.get("/countries", CountryController.getAllCountries);
-
-router.get("/countries/regions", CountryController.getRegions);
-router.get("/countries/languages", CountryController.getLanguages);
-router.get("/countries/statistics", CountryController.getStatistics);
-
 router.get("/countries/:name", CountryController.getCountry);
+
+
+router.get("/regions", CountryController.getRegions);
+router.get("/languages", CountryController.getLanguages);
+router.get("/statistics", CountryController.getStatistics);
+
 
 
 export default router;

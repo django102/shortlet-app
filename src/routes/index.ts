@@ -20,5 +20,4 @@ router.get("/languages", CountryController.getLanguages);
 router.get("/statistics", CountryController.getStatistics);
 
 
-
 export default router;

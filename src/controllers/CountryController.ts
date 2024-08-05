@@ -9,10 +9,13 @@ const getRegions = async (req: Request, res: Response, next: NextFunction): Prom
 
 const getLanguages = async (req: Request, res: Response, next: NextFunction): Promise<Response> => CountryService.getLanguages(req, res);
 
+const getStatistics = async (req: Request, res: Response, next: NextFunction): Promise<Response> => CountryService.getStatistics(req, res);
+
 
 export default {
     getAllCountries,
     getCountry,
     getRegions,
-    getLanguages
+    getLanguages,
+    getStatistics
 }

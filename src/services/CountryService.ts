@@ -8,9 +8,22 @@ import MapperService from "./MapperService";
 import Country from "../models/mongo/Country";
 import CacheService from "./CacheService";
 import ResponseHandler from "../handlers/ResponseHandler";
+import { ICountry } from "src/interfaces/ICountry";
 
+
+type RegionData = {
+    countries: string[];
+    totalPopulation: number;
+    totalArea: number;
+};
+
+type LanguageData = {
+    countries: { name: string, region: string }[];
+    totalPopulation: number;
+};
 
 const redisKeyForAllCountries = "countries:all";
+
 
 export const CountryService = {
     getAllCountriesFromService: async (req: Request, res: Response): Promise<Response> => {
@@ -92,12 +105,6 @@ export const CountryService = {
     },
 
     getRegions: async (req: Request, res: Response): Promise<Response> => {
-        type RegionData = {
-            countries: string[];
-            totalPopulation: number;
-            totalArea: number;
-        };
-
         try {
             const redisKey = `regions:all`;
             const cachedResult = await CacheService.jsonGet(redisKey);
@@ -130,11 +137,6 @@ export const CountryService = {
     },
 
     getLanguages: async (req: Request, res: Response): Promise<Response> => {
-        type LanguageData = {
-            countries: { name: string, region: string }[];
-            totalPopulation: number;
-        };
-
         try {
             const redisKey = "languages:all";
             const cachedResult = await CacheService.jsonGet(redisKey);
@@ -142,21 +144,7 @@ export const CountryService = {
                 return ApiResponse.success(res, ResponseStatus.OK, "Languages successfully retrieved", cachedResult[0].data, cachedResult[0].meta);
             }
 
-            const cachedCountries = await CacheService.jsonGet(redisKeyForAllCountries);
-            const countries = cachedCountries ? cachedCountries[0] : await Country.find();
-
-            const languages = countries.reduce((acc, country) => {
-                const { name, population, region, languages: countryLanguages } = country;
-                countryLanguages.forEach(language => {
-                    if (!acc[language]) {
-                        acc[language] = { countries: [], totalPopulation: 0 };
-                    }
-                    acc[language].countries.push({ name, region });
-                    acc[language].totalPopulation += population;
-                });
-                return acc;
-            }, {} as Record<string, LanguageData>);
-
+            const languages = await getLanguages();
             const totalLanguages = Object.keys(languages).length;
 
             await CacheService.jsonSet(redisKey, { data: languages, meta: { total: totalLanguages } });
@@ -164,5 +152,89 @@ export const CountryService = {
         } catch (err: any) {
             return ResponseHandler.ErrorResponse(res, err);
         }
+    },
+
+    getStatistics: async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const redisKey = "statistics:all";
+            const cachedResult = await CacheService.jsonGet(redisKey);
+            if (cachedResult) {
+                return ApiResponse.success(res, ResponseStatus.OK, "Statistics computed successfully", cachedResult[0]);
+            }
+
+            const cachedCountries = await CacheService.jsonGet(redisKeyForAllCountries);
+            const countries: ICountry[] = cachedCountries ? cachedCountries[0] : await Country.find();
+
+            const languagesRedisKey = "languages:all";
+            const cachedLanguages = await CacheService.jsonGet(languagesRedisKey);
+            const languages: Record<string, LanguageData> = cachedLanguages ? cachedLanguages[0].data : await getLanguages();
+
+            const statistics = countries.reduce((acc, country) => {
+                if (!acc.largestCountryByArea || country.area > acc.largestCountryByArea.area) {
+                    acc.largestCountryByArea = { country: country.name, area: country.area };
+                }
+                if (!acc.smallestCountryByArea || country.area < acc.smallestCountryByArea.area) {
+                    acc.smallestCountryByArea = { country: country.name, area: country.area };
+                }
+                if (!acc.largestCountryByPopulation || country.population > acc.largestCountryByPopulation.population) {
+                    acc.largestCountryByPopulation = { country: country.name, population: country.population };
+                }
+                if (!acc.smallestCountryByPopulation || country.population < acc.smallestCountryByPopulation.population) {
+                    acc.smallestCountryByPopulation = { country: country.name, population: country.population };
+                }
+                return acc;
+            }, {
+                largestCountryByArea: null,
+                smallestCountryByArea: null,
+                largestCountryByPopulation: null,
+                smallestCountryByPopulation: null
+            });
+
+            const languageStats = Object.entries(languages).reduce((acc, [language, data]) => {
+                if (!acc.mostSpokenLanguage || data.totalPopulation > acc.mostSpokenLanguage.totalSpeakers) {
+                    acc.mostSpokenLanguage = { language, totalSpeakers: data.totalPopulation, totalCountries: data.countries.length };
+                }
+                if (!acc.leastSpokenLanguage || data.totalPopulation < acc.leastSpokenLanguage.totalSpeakers) {
+                    acc.leastSpokenLanguage = { language, totalSpeakers: data.totalPopulation, totalCountries: data.countries.length };
+                }
+                return acc;
+            }, {
+                mostSpokenLanguage: null,
+                leastSpokenLanguage: null
+            });
+
+            const finalStatistics = {
+                countries: countries.length,
+                ...statistics,
+                mostSpokenLanguage: languageStats.mostSpokenLanguage,
+                leastSpokenLanguage: languageStats.leastSpokenLanguage
+            };
+
+            await CacheService.jsonSet(redisKey, finalStatistics);
+            return ApiResponse.success(res, ResponseStatus.OK, "Statistics computed successfully", finalStatistics);
+        } catch (err: any) {
+            return ResponseHandler.ErrorResponse(res, err);
+        }
     }
+}
+
+
+
+const getLanguages = async () => {
+    const cachedCountries = await CacheService.jsonGet(redisKeyForAllCountries);
+    const countries = cachedCountries ? cachedCountries[0] : await Country.find();
+
+    const languages = countries.reduce((acc, country) => {
+        const { name, population, region, languages: countryLanguages } = country;
+        countryLanguages.forEach(language => {
+            if (!acc[language]) {
+                acc[language] = { countries: [], totalPopulation: 0 };
+            }
+            acc[language].countries.push({ name, region });
+            acc[language].totalPopulation += population;
+        });
+        return acc;
+    }, {} as Record<string, LanguageData>);
+
+    return languages;
 }

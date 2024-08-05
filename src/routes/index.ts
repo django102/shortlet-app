@@ -12,7 +12,10 @@ router.get("/all", JobController.getAllCountriesFromService);
 
 
 router.get("/countries", CountryController.getAllCountries);
-router.get("/countries/:name", CountryController.getCountry)
+
+router.get("/countries/regions", CountryController.getRegions);
+
+router.get("/countries/:name", CountryController.getCountry);
 
 
 export default router;

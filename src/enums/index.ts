@@ -17,3 +17,9 @@ export enum ResponseStatus {
     SERVICE_UNAVAILABLE = 503,
     GATEWAY_TIMEOUT = 504,
 }
+
+
+export enum Pagination {
+    DEFAULT_PAGE_NUMBER = 1,
+    DEFAULT_PAGE_SIZE = 20
+}

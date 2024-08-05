@@ -92,6 +92,12 @@ export const CountryService = {
     },
 
     getRegions: async (req: Request, res: Response): Promise<Response> => {
+        type RegionData = {
+            countries: string[];
+            totalPopulation: number;
+            totalArea: number;
+        };
+
         try {
             const redisKey = `regions:all`;
             const cachedResult = await CacheService.jsonGet(redisKey);
@@ -99,18 +105,8 @@ export const CountryService = {
                 return ApiResponse.success(res, ResponseStatus.OK, "Regions successfully retrieved", cachedResult[0].data, cachedResult[0].meta);
             }
 
-
             const cachedCountries = await CacheService.jsonGet(redisKeyForAllCountries);
             const countries = cachedCountries ? cachedCountries[0] : await Country.find();
-
-            // const regions = countries.reduce((acc, country) => {
-            //     const { name, region, population } = country;
-            //     if (!acc[region]) {
-            //         acc[region] = []
-            //     }
-            //     acc[region].push({name, population});
-            //     return acc;
-            // }, {} as { [key: string]: { name: string; population: number }[] });
 
             const regions = countries.reduce((acc, country) => {
                 const { name, region, population, area } = country;
@@ -121,13 +117,50 @@ export const CountryService = {
                 acc[region].totalPopulation += population;
                 acc[region].totalArea += area;
                 return acc;
-            }, {} as { [key: string]: { names: string[], totalPopulation: number, totalArea: number } });
+            }, {} as Record<string, RegionData>);
 
             const totalRegions = Object.keys(regions).length;
 
             await CacheService.jsonSet(redisKey, { data: regions, meta: { total: totalRegions } })
 
             return ApiResponse.success(res, ResponseStatus.OK, "Regions successfully retrieved", regions, { total: totalRegions });
+        } catch (err: any) {
+            return ResponseHandler.ErrorResponse(res, err);
+        }
+    },
+
+    getLanguages: async (req: Request, res: Response): Promise<Response> => {
+        type LanguageData = {
+            countries: { name: string, region: string }[];
+            totalPopulation: number;
+        };
+
+        try {
+            const redisKey = "languages:all";
+            const cachedResult = await CacheService.jsonGet(redisKey);
+            if (cachedResult) {
+                return ApiResponse.success(res, ResponseStatus.OK, "Languages successfully retrieved", cachedResult[0].data, cachedResult[0].meta);
+            }
+
+            const cachedCountries = await CacheService.jsonGet(redisKeyForAllCountries);
+            const countries = cachedCountries ? cachedCountries[0] : await Country.find();
+
+            const languages = countries.reduce((acc, country) => {
+                const { name, population, region, languages: countryLanguages } = country;
+                countryLanguages.forEach(language => {
+                    if (!acc[language]) {
+                        acc[language] = { countries: [], totalPopulation: 0 };
+                    }
+                    acc[language].countries.push({ name, region });
+                    acc[language].totalPopulation += population;
+                });
+                return acc;
+            }, {} as Record<string, LanguageData>);
+
+            const totalLanguages = Object.keys(languages).length;
+
+            await CacheService.jsonSet(redisKey, { data: languages, meta: { total: totalLanguages } });
+            return ApiResponse.success(res, ResponseStatus.OK, "Languages successfully retrieved", languages, { total: totalLanguages });
         } catch (err: any) {
             return ResponseHandler.ErrorResponse(res, err);
         }

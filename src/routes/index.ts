@@ -14,6 +14,7 @@ router.get("/all", JobController.getAllCountriesFromService);
 router.get("/countries", CountryController.getAllCountries);
 
 router.get("/countries/regions", CountryController.getRegions);
+router.get("/countries/languages", CountryController.getLanguages);
 
 router.get("/countries/:name", CountryController.getCountry);
 

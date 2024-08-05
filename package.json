@@ -27,6 +27,7 @@
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.2",
     "ncp": "^2.0.0",
+    "node-cron": "^3.0.3",
     "nps": "^5.10.0",
     "nps-utils": "^1.7.0",
     "querystring": "^0.2.1",

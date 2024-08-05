@@ -1,7 +1,6 @@
 import { redisClient } from "../config/redis";
 
-// const EX = 86400; // 24 hours expiry time, in seconds
-const EX = 43200; // 12 hours expiry time, in seconds
+const EX = 86400; // 24 hours expiry time, in seconds
 
 
 const set = async (key, value) => {

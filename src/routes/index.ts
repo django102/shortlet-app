@@ -11,7 +11,7 @@ router.get("/", (req, res) => res.send({ message: 'Welcome' }));
 router.get("/job/allCountries", JobController.getAllCountriesFromService);
 
 
-router.get("/countries", CountryController.getAllCountries);
+router.get("/countries", CountryController.getCountries);
 router.get("/countries/:name", CountryController.getCountry);
 
 

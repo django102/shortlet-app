@@ -26,7 +26,7 @@ redisClient.connect()
     .catch((err) => console.error('Could not connect to Redis...', err));
 
 
-    logger.info("Starting CRON...")
+logger.info("Starting CRON...")
 RunSchedules(scheduleList); // run cron jobs
 
 

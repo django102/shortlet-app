@@ -122,7 +122,7 @@ export default class CountryService {
 
             await CacheService.jsonSet(redisKey, { data: countries, meta: { page, pageSize, total: countriesCount, pageCount: totalPages } })
 
-            return ServiceResponse.success(res, "Countries successfully retrieved", countries, { page, pageSize, total: countriesCount, pageCount: totalPages });
+            return ServiceResponse.success(res, "Countries successfully retrieved", countries, { page, pageSize, total: countriesCount, skip: skipRecords, pageCount: totalPages });
         } catch (err: any) {
             return ServiceResponse.error(res, err);
         }

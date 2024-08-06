@@ -13,7 +13,8 @@
     "start": "yarn build && node ./dist/app.js",
     "lint": "tslint -c tslint.json --fix \"src/**/*.ts\"",
     "ts:watch": "tsc -w",
-    "test": "jest --verbose --runInBand --coverage --collectCoverageFrom=src/api/**/*.ts --forceExit"
+    "test": "jest --verbose --runInBand --coverage --collectCoverageFrom=src/api/**/*.ts --forceExit",
+    "deploy": "yarn"
   },
   "dependencies": {
     "@redis/json": "^1.0.7",

@@ -5,7 +5,7 @@ import HttpService from "../../../src/api/services/HttpService";
 import MapperService from "../../../src/api/services/MapperService";
 import { env } from "../../../src/env";
 import { Request, Response } from "express";
-import {  ResponseStatus } from "../../../src/api/enums";
+import { ResponseStatus } from "../../../src/api/enums";
 
 
 describe("CountryService", () => {
@@ -709,15 +709,15 @@ describe("CountryService", () => {
             const cachedData = [{ data: { name: countryName } }];
             jsonGetMock.mockResolvedValue(cachedData);
             req.params.name = countryName;
-    
+
             const result = await CountryService.getCountry(req as Request, res as Response);
-    
+
             expect(jsonGetMock).toHaveBeenCalledWith(`countries:${countryName.toLowerCase()}`);
             expect(findCountryMock).not.toHaveBeenCalled();
             expect(result.code).toEqual(ResponseStatus.OK)
             expect(result.data).toEqual(cachedData[0].data)
         });
-    
+
         it('should return country from database and set cache', async () => {
             const countryName = 'CountryB';
             const countryData = { name: countryName };
@@ -725,39 +725,408 @@ describe("CountryService", () => {
             jsonSetMock.mockResolvedValue(null);
             findCountryMock.mockResolvedValue(countryData);
             req.params.name = countryName;
-    
+
             const result = await CountryService.getCountry(req as Request, res as Response);
-    
+
             expect(jsonGetMock).toHaveBeenCalledWith(`countries:${countryName.toLowerCase()}`);
             expect(findCountryMock).toHaveBeenCalledWith({ name: countryName });
             expect(jsonSetMock).toHaveBeenCalledWith(`countries:${countryName.toLowerCase()}`, { data: countryData });
             expect(result.code).toEqual(ResponseStatus.OK)
             expect(result.data).toEqual(countryData)
         });
-    
+
         it('should return error if country not found in database', async () => {
             const countryName = 'CountryC';
             jsonGetMock.mockResolvedValue(null);
             findCountryMock.mockResolvedValue(null);
             req.params.name = countryName;
-    
+
             const result = await CountryService.getCountry(req as Request, res as Response);
-    
+
             expect(jsonGetMock).toHaveBeenCalledWith(`countries:${countryName.toLowerCase()}`);
             expect(findCountryMock).toHaveBeenCalledWith({ name: countryName });
             expect(result.code).toEqual(ResponseStatus.NOT_FOUND)
         });
-    
+
         it('should handle errors correctly', async () => {
             const countryName = 'CountryD';
             const error = new Error('Database error');
             jsonGetMock.mockRejectedValue(error);
             req.params.name = countryName;
-    
+
             const result = await CountryService.getCountry(req as Request, res as Response);
-    
+
             expect(jsonGetMock).toHaveBeenCalledWith(`countries:${countryName.toLowerCase()}`);
             expect(result.code).toEqual(ResponseStatus.INTERNAL_SERVER_ERROR)
         });
-    })
+    });
+
+    describe("getRegions", () => {
+        let req: Partial<Request>;
+        let res: Partial<Response>;
+        let retrieveRegionsMock: jest.SpyInstance;
+
+        beforeAll(() => {
+            req = {};
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis()
+            };
+
+            jsonGetMock = jest.spyOn(CacheService, "jsonGet");
+            jsonSetMock = jest.spyOn(CacheService, "jsonSet");
+            retrieveRegionsMock = jest.spyOn(CountryService as any, "retrieveRegions");
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
+
+        it('should return regions from cache', async () => {
+            const cachedData = [{ data: { region1: {}, region2: {} }, meta: { total: 2 } }];
+            jsonGetMock.mockResolvedValue(cachedData);
+
+
+            const result = await CountryService.getRegions(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('regions:all');
+            expect(retrieveRegionsMock).not.toHaveBeenCalled();
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(cachedData[0].data);
+            expect(result.meta).toEqual(cachedData[0].meta);
+        });
+
+        it('should return regions from CountryService and set cache', async () => {
+            const regions = { regionB: {}, regionA: {} };
+            const sortedRegions = { regionA: {}, regionB: {} };
+            const totalRegions = 2;
+
+            jsonGetMock.mockResolvedValue(null);
+            retrieveRegionsMock.mockResolvedValue(regions);
+            jsonSetMock.mockResolvedValue(null);
+
+            const result = await CountryService.getRegions(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('regions:all');
+            expect(retrieveRegionsMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('regions:all', { data: sortedRegions, meta: { total: totalRegions } });
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(sortedRegions);
+            expect(result.meta).toEqual({ total: totalRegions });
+        });
+
+        it('should handle errors correctly', async () => {
+            const error = new Error('Database error');
+            jsonGetMock.mockRejectedValue(error);
+
+            const result = await CountryService.getRegions(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalled();
+            expect(result.code).toEqual(ResponseStatus.INTERNAL_SERVER_ERROR);
+        });
+
+        it('should handle empty regions correctly', async () => {
+            const regions = {};
+            const sortedRegions = {};
+            const totalRegions = 0;
+
+            jsonGetMock.mockResolvedValue(null);
+            jsonSetMock.mockResolvedValue(null);
+            retrieveRegionsMock.mockResolvedValue(regions);
+
+            const result = await CountryService.getRegions(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('regions:all');
+            expect(retrieveRegionsMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('regions:all', { data: sortedRegions, meta: { total: totalRegions } });
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(sortedRegions);
+            expect(result.meta).toEqual({ total: totalRegions });
+        });
+
+        it('should handle unsorted regions correctly', async () => {
+            const regions = { regionC: {}, regionB: {}, regionA: {} };
+            const sortedRegions = { regionA: {}, regionB: {}, regionC: {} };
+            const totalRegions = 3;
+
+            jsonGetMock.mockResolvedValue(null);
+            jsonSetMock.mockResolvedValue(null);
+            retrieveRegionsMock.mockResolvedValue(regions);
+
+            const result = await CountryService.getRegions(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('regions:all');
+            expect(retrieveRegionsMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('regions:all', { data: sortedRegions, meta: { total: totalRegions } });
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(sortedRegions);
+            expect(result.meta).toEqual({ total: totalRegions });
+        });
+    });
+
+    describe("getLanguages", () => {
+        let req: Partial<Request>;
+        let res: Partial<Response>;
+        let retrieveLanguagesMock: jest.SpyInstance;
+
+        beforeAll(() => {
+            req = {};
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis()
+            };
+
+            jsonGetMock = jest.spyOn(CacheService, "jsonGet");
+            jsonSetMock = jest.spyOn(CacheService, "jsonSet");
+            retrieveLanguagesMock = jest.spyOn(CountryService as any, "retrieveLanguages");
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
+
+
+        it('should return languages from cache', async () => {
+            const cachedData = [{ data: { language1: {}, language2: {} }, meta: { total: 2 } }];
+            jsonGetMock.mockResolvedValue(cachedData);
+
+            const result = await CountryService.getLanguages(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('languages:all');
+            expect(retrieveLanguagesMock).not.toHaveBeenCalled();
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(cachedData[0].data);
+            expect(result.meta).toEqual(cachedData[0].meta);
+        });
+
+        it('should return languages from CountryService and set cache', async () => {
+            const languages = { languageB: {}, languageA: {} };
+            const sortedLanguages = { languageA: {}, languageB: {} };
+            const totalLanguages = 2;
+
+            jsonGetMock.mockResolvedValue(null);
+            jsonSetMock.mockResolvedValue(null);
+            retrieveLanguagesMock.mockResolvedValue(languages);
+
+            const result = await CountryService.getLanguages(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('languages:all');
+            expect(retrieveLanguagesMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('languages:all', { data: sortedLanguages, meta: { total: totalLanguages } });
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(sortedLanguages);
+            expect(result.meta).toEqual({ total: totalLanguages });
+        });
+
+        it('should handle errors correctly', async () => {
+            const error = new Error('Database error');
+            jsonGetMock.mockRejectedValue(error);
+
+            const result = await CountryService.getLanguages(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalled();
+            expect(result.code).toEqual(ResponseStatus.INTERNAL_SERVER_ERROR);
+        });
+
+        it('should handle empty languages correctly', async () => {
+            const languages = {};
+            const sortedLanguages = {};
+            const totalLanguages = 0;
+
+            jsonGetMock.mockResolvedValue(null);
+            jsonSetMock.mockResolvedValue(null);
+            retrieveLanguagesMock.mockResolvedValue(languages);
+
+            const result = await CountryService.getLanguages(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('languages:all');
+            expect(retrieveLanguagesMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('languages:all', { data: sortedLanguages, meta: { total: totalLanguages } });
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(sortedLanguages);
+            expect(result.meta).toEqual({ total: totalLanguages });
+        });
+
+        it('should handle unsorted languages correctly', async () => {
+            const languages = { languageC: {}, languageB: {}, languageA: {} };
+            const sortedLanguages = { languageA: {}, languageB: {}, languageC: {} };
+            const totalLanguages = 3;
+
+            jsonGetMock.mockResolvedValue(null);
+            jsonSetMock.mockResolvedValue(null);
+            retrieveLanguagesMock.mockResolvedValue(languages);
+
+            const result = await CountryService.getLanguages(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('languages:all');
+            expect(retrieveLanguagesMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('languages:all', { data: sortedLanguages, meta: { total: totalLanguages } });
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(sortedLanguages);
+            expect(result.meta).toEqual({ total: totalLanguages });
+        });
+    });
+
+    describe("getStatistics", () => {
+        let req: Partial<Request>;
+        let res: Partial<Response>;
+        let retrieveLanguagesMock: jest.SpyInstance;
+        let findCountryMock: jest.SpyInstance;
+
+        beforeAll(() => {
+            req = {};
+            res = {
+                status: jest.fn().mockReturnThis(),
+                json: jest.fn().mockReturnThis()
+            };
+
+            jsonGetMock = jest.spyOn(CacheService, "jsonGet");
+            jsonSetMock = jest.spyOn(CacheService, "jsonSet");
+            retrieveLanguagesMock = jest.spyOn(CountryService as any, "retrieveLanguages");
+            findCountryMock = jest.spyOn(Country, "find");
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
+
+
+        it('should return statistics from cache', async () => {
+            const cachedData = [{ countries: 3 }];
+            jsonGetMock.mockResolvedValue(cachedData);
+
+            const result = await CountryService.getStatistics(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('statistics:all');
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(cachedData[0]);
+        });
+
+        it('should return statistics after computing from data', async () => {
+            const countries = [
+                [
+                    { name: 'CountryA', area: 100, population: 1000 },
+                    { name: 'CountryB', area: 200, population: 2000 },
+                    { name: 'CountryC', area: 50, population: 500 }
+                ]
+            ];
+            const languages = {
+                languageA: { totalPopulation: 2000, countries: ['CountryA', 'CountryB'] },
+                languageB: { totalPopulation: 1500, countries: ['CountryC'] }
+            };
+            const expectedStatistics = {
+                countries: 3,
+                largestCountryByArea: { country: 'CountryB', area: 200 },
+                smallestCountryByArea: { country: 'CountryC', area: 50 },
+                largestCountryByPopulation: { country: 'CountryB', population: 2000 },
+                smallestCountryByPopulation: { country: 'CountryC', population: 500 },
+                mostSpokenLanguage: { language: 'languageA', totalSpeakers: 2000, totalCountries: 2 },
+                leastSpokenLanguage: { language: 'languageB', totalSpeakers: 1500, totalCountries: 1 }
+            };
+
+            jsonGetMock
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce(countries)
+                .mockResolvedValueOnce(null);
+            findCountryMock.mockResolvedValue(countries);
+            retrieveLanguagesMock.mockResolvedValue(languages);
+            jsonSetMock.mockResolvedValue(null);
+
+            const result = await CountryService.getStatistics(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('statistics:all');
+            expect(jsonGetMock).toHaveBeenCalledWith(redisKeyForAllCountries);
+            expect(jsonGetMock).toHaveBeenCalledWith('languages:all');
+            expect(findCountryMock).not.toHaveBeenCalled();
+            expect(retrieveLanguagesMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('statistics:all', expectedStatistics);
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(expectedStatistics);
+        });
+
+        it('should handle errors correctly', async () => {
+            const error = new Error('Database error');
+            jsonGetMock.mockRejectedValue(error);
+
+            const result = await CountryService.getStatistics(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalled();
+            expect(result.code).toEqual(ResponseStatus.INTERNAL_SERVER_ERROR);
+        });
+
+        it('should handle missing countries in the database', async () => {
+            const languages = {
+                languageA: { totalPopulation: 2000, countries: ['CountryA', 'CountryB'] },
+                languageB: { totalPopulation: 1500, countries: ['CountryC'] }
+            };
+            const expectedStatistics = {
+                countries: 0,
+                largestCountryByArea: null,
+                smallestCountryByArea: null,
+                largestCountryByPopulation: null,
+                smallestCountryByPopulation: null,
+                mostSpokenLanguage: { language: 'languageA', totalSpeakers: 2000, totalCountries: 2 },
+                leastSpokenLanguage: { language: 'languageB', totalSpeakers: 1500, totalCountries: 1 }
+            };
+
+            jsonGetMock
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce(null);
+            findCountryMock.mockResolvedValue([]);
+            retrieveLanguagesMock.mockResolvedValue(languages);
+            jsonSetMock.mockResolvedValue(null);
+
+            const result = await CountryService.getStatistics(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('statistics:all');
+            expect(jsonGetMock).toHaveBeenCalledWith(redisKeyForAllCountries);
+            expect(jsonGetMock).toHaveBeenCalledWith('languages:all');
+            expect(findCountryMock).toHaveBeenCalled();
+            expect(retrieveLanguagesMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('statistics:all', expectedStatistics);
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(expectedStatistics);
+        });
+
+        it('should handle missing languages in the database', async () => {
+            const countries = [
+                [
+                    { name: 'CountryA', area: 100, population: 1000 },
+                    { name: 'CountryB', area: 200, population: 2000 },
+                    { name: 'CountryC', area: 50, population: 500 }
+                ]
+            ];
+            const expectedStatistics = {
+                countries: 3,
+                largestCountryByArea: { country: 'CountryB', area: 200 },
+                smallestCountryByArea: { country: 'CountryC', area: 50 },
+                largestCountryByPopulation: { country: 'CountryB', population: 2000 },
+                smallestCountryByPopulation: { country: 'CountryC', population: 500 },
+                mostSpokenLanguage: null,
+                leastSpokenLanguage: null
+            };
+
+            jsonGetMock
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce(countries)
+                .mockResolvedValueOnce(null);
+            findCountryMock.mockResolvedValue(countries);
+            retrieveLanguagesMock.mockResolvedValue({});
+
+            const result = await CountryService.getStatistics(req as Request, res as Response);
+
+            expect(jsonGetMock).toHaveBeenCalledWith('statistics:all');
+            expect(jsonGetMock).toHaveBeenCalledWith(redisKeyForAllCountries);
+            expect(jsonGetMock).toHaveBeenCalledWith('languages:all');
+            expect(findCountryMock).not.toHaveBeenCalled();
+            expect(retrieveLanguagesMock).toHaveBeenCalled();
+            expect(jsonSetMock).toHaveBeenCalledWith('statistics:all', expectedStatistics);
+            expect(result.code).toEqual(ResponseStatus.OK);
+            expect(result.data).toEqual(expectedStatistics);
+        });
+    });
 });

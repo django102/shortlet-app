@@ -1,4 +1,3 @@
-import ApiResponse from "../response";
 import { Response, Request } from "express";
 
 import { env } from "../../env";
@@ -7,8 +6,7 @@ import { Pagination, ResponseStatus } from "../enums";
 import MapperService from "./MapperService";
 import Country from "../models/mongo/Country";
 import CacheService from "./CacheService";
-import ResponseHandler from "../handlers/ResponseHandler";
-import { ICountry } from "src/api/interfaces/ICountry";
+import { ICountry } from "../interfaces/ICountry";
 import { ServiceResponse } from "../models/ServiceResponse";
 
 
@@ -103,7 +101,7 @@ export default class CountryService {
             const { query } = req;
             const { region, minPopulation, maxPopulation } = query;
             const page = Number(query.page) || Pagination.DEFAULT_PAGE_NUMBER;
-            const pageSize = Number(query.pageSize) || Pagination.DEFAULT_PAGE_NUMBER;
+            const pageSize = Number(query.pageSize) || Pagination.DEFAULT_PAGE_SIZE;
             const skipRecords = (page - 1) * pageSize
             const filters = {
                 ...(region && { region }),
@@ -143,7 +141,7 @@ export default class CountryService {
 
             const country = await Country.findOne({ name });
             if (!country) {
-                return ServiceResponse.error(res, null,  `No country information was found for ${name}`, ResponseStatus.NOT_FOUND)
+                return ServiceResponse.error(res, null, `No country information was found for ${name}`, ResponseStatus.NOT_FOUND)
             }
 
             await CacheService.jsonSet(redisKey, { data: country })
@@ -158,7 +156,7 @@ export default class CountryService {
             const redisKey = `regions:all`;
             const cachedResult = await CacheService.jsonGet(redisKey);
             if (cachedResult) {
-                return ApiResponse.success(res, ResponseStatus.OK, "Regions successfully retrieved", cachedResult[0].data, cachedResult[0].meta);
+                return ServiceResponse.success(res, "Regions successfully retrieved", cachedResult[0].data, cachedResult[0].meta);
             }
 
             const regions = await CountryService.retrieveRegions();
@@ -170,9 +168,9 @@ export default class CountryService {
 
             await CacheService.jsonSet(redisKey, { data: sortedRegions, meta: { total: totalRegions } })
 
-            return ApiResponse.success(res, ResponseStatus.OK, "Regions successfully retrieved", sortedRegions, { total: totalRegions });
+            return ServiceResponse.success(res, "Regions successfully retrieved", sortedRegions, { total: totalRegions });
         } catch (err: any) {
-            return ResponseHandler.ErrorResponse(res, err);
+            return ServiceResponse.error(res, err);
         }
     }
 
@@ -181,7 +179,7 @@ export default class CountryService {
             const redisKey = "languages:all";
             const cachedResult = await CacheService.jsonGet(redisKey);
             if (cachedResult) {
-                return ApiResponse.success(res, ResponseStatus.OK, "Languages successfully retrieved", cachedResult[0].data, cachedResult[0].meta);
+                return ServiceResponse.success(res, "Languages successfully retrieved", cachedResult[0].data, cachedResult[0].meta);
             }
 
             const languages = await CountryService.retrieveLanguages();
@@ -192,9 +190,9 @@ export default class CountryService {
             }, {} as Record<string, LanguageData>)
 
             await CacheService.jsonSet(redisKey, { data: sortedLanguages, meta: { total: totalLanguages } });
-            return ApiResponse.success(res, ResponseStatus.OK, "Languages successfully retrieved", sortedLanguages, { total: totalLanguages });
+            return ServiceResponse.success(res, "Languages successfully retrieved", sortedLanguages, { total: totalLanguages });
         } catch (err: any) {
-            return ResponseHandler.ErrorResponse(res, err);
+            return ServiceResponse.error(res, err);
         }
     }
 
@@ -203,7 +201,7 @@ export default class CountryService {
             const redisKey = "statistics:all";
             const cachedResult = await CacheService.jsonGet(redisKey);
             if (cachedResult) {
-                return ApiResponse.success(res, ResponseStatus.OK, "Statistics computed successfully", cachedResult[0]);
+                return ServiceResponse.success(res, "Statistics computed successfully", cachedResult[0]);
             }
 
             const cachedCountries = await CacheService.jsonGet(redisKeyForAllCountries);
@@ -255,9 +253,9 @@ export default class CountryService {
             };
 
             await CacheService.jsonSet(redisKey, finalStatistics);
-            return ApiResponse.success(res, ResponseStatus.OK, "Statistics computed successfully", finalStatistics);
+            return ServiceResponse.success(res, "Statistics computed successfully", finalStatistics);
         } catch (err: any) {
-            return ResponseHandler.ErrorResponse(res, err);
+            return ServiceResponse.error(res, err);
         }
     }
 }

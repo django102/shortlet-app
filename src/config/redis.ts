@@ -1,5 +1,6 @@
 import { createClient, RedisClientType } from "redis";
 import { env } from "../env";
+import logger from "../lib/logger";
 
 const { caching } = env;
 const { redis } = caching;
@@ -18,9 +19,9 @@ export const redisClient: RedisClientType = createClient(redisConfig);
 
 
 redisClient.on("ready", () => {
-    console.log("Redis client is ready!");
+    logger.info("Redis client is ready!");
 });
 
 redisClient.on("end", () => {
-    console.log("Disonnected from redis!");
+    logger.info("Disonnected from redis!");
 });

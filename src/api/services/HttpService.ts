@@ -1,5 +1,6 @@
 import axios from "axios";
 import querystring from "querystring";
+import logger from "../../lib/logger";
 
 
 export default class HttpService {
@@ -13,7 +14,7 @@ export default class HttpService {
            
             return result.data
         } catch (err: any) {
-            console.log("Axios Error: ", err);
+            logger.info("Axios Error: ", err);
             return { status: false, message: err.message }
         }
     }

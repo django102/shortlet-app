@@ -5,6 +5,8 @@ import compression from 'compression';
 
 import { Application, json, urlencoded, Request, Response } from 'express';
 import router from "../api/routes";
+import loggerMiddleware from "../middleware/logger";
+import logger from "../lib/logger";
 
 
 const corsOptions = {
@@ -30,6 +32,7 @@ const expressConfig = (app: Application): void => {
         }),
     );
     app.use(json());
+    app.use(loggerMiddleware);
     app.use(helmet());
     app.use(helmet.contentSecurityPolicy({
         directives: {
@@ -37,6 +40,35 @@ const expressConfig = (app: Application): void => {
             scriptSrc: ["'self'"]
         }
     }));
+
+    app.use((req: any, res, next) => {
+        const startTime = req._startTime || new Date();
+        const rightNow: any = new Date();
+        const ageSinceRequestStart = rightNow - startTime;
+    
+        if (!req._startTime) req._startTime = startTime;
+    
+        const payload = {
+          service: 'shortlet-app',
+          timestamp: new Date(),
+          type: "request",
+          created: startTime,
+          age: `${req.headers.age ? req.headers.age + ageSinceRequestStart : ageSinceRequestStart}ms`,
+          endpoint: req.originalUrl || req.url,
+          tag: req.tag || req.headers["tag"],
+          payload: {
+            verb: req.method,
+            client: req.headers["x-forwarded-for"] ? req.headers["x-forwarded-for"].split(",")[0] : req.connection.remoteAddress,
+            headers: { ...req.headers, ...(req.headers.authorization ? { authorization: "Bearer xyz" } : {}) },
+            body: req.body,
+            param: req.param,
+            query: req.query
+          },
+        }
+    
+        logger.log("info", JSON.stringify(payload));
+        next();
+      })
 
     app.get('/', (req: Request, res: Response) => res.send({ message: 'Welcome' }));
     app.use("/api", router);

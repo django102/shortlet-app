@@ -7,7 +7,6 @@ import { env } from "../../../src/env";
 import { Request, Response } from "express";
 import { ResponseStatus } from "../../../src/api/enums";
 
-
 describe("CountryService", () => {
     let jsonGetMock: jest.SpyInstance;
     let jsonSetMock: jest.SpyInstance;

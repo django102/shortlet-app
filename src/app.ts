@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { mongoUri } from "./config/mongodb";
 import { redisClient } from "./config/redis";
 import { RunSchedules, scheduleList } from "./api/services/CronService";
+import logger from "./lib/logger";
 
 
 const app: express.Application = express();
@@ -14,21 +15,21 @@ expressConfig(app);
 
 mongoose.connect(mongoUri)
     .then((connection) => {
-        console.log('Connected to MongoDB')
+        logger.info('Connected to MongoDB')
     })
     .catch((err) => console.error('Could not connect to MongoDB...', err));
 
 redisClient.connect()
     .then(() => {
-        console.log('Connected to Redis')
+        logger.info('Connected to Redis')
     })
     .catch((err) => console.error('Could not connect to Redis...', err));
 
 
-console.log("Starting CRON...")
+    logger.info("Starting CRON...")
 RunSchedules(scheduleList); // run cron jobs
 
 
 app.listen(PORT, () => {
-    console.log(`Application started on ${PORT}`)
+    logger.info(`Application started on ${PORT}`)
 });

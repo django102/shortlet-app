@@ -2,12 +2,12 @@ const { execSync } = require('child_process');
 const { rimraf } = require('rimraf');
 const path = require('path');
 
+
 const build = () => {
     try {
         // Remove build directory
         rimraf.sync("./dist")
         console.log('Cleaned build directory.');
-
         // Compile TypeScript
         execSync('tsc --project ./tsconfig.build.json', { stdio: 'inherit' });
         console.log('TypeScript compilation completed.');

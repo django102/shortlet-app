@@ -218,17 +218,27 @@ $ yarn test
 &nbsp; 
 &nbsp; 
 
-## Implementation Approach
+## >> Implementation Approach
 
-I went with the Incremental Model of development, building out parts of the application and iterating as requirements and dependencies on other parts of the application evolve.
-I began with bootstrapping the application, building out an empty shell that does nothing but still runs, adding components and dependencies along the way. Next I set up the environment variables that would be used throughout the application and a globally available configuration file that serves up these variables in a more efficient and readable manner.
-I then proceeded to set up integration with the database and caching. I went with MongoDB for the database because it is able to handle data directly in JSON format, and Redis for the caching because it is widely used. I also added a CRON job to help with retrieving data from the REST Countries API in the background, updating the database and the cache once the process is completed. While the REST Countries API had endpoints to handle most of the requirements of this project, by getting all the available countries from the API and saving them in the database, I could obtain records in any way I choose without the constant dependency of the API. Implementing a caching system right in front of the database further decreases database overhead and improves API response time.
+I opted for the Incremental Model of development for my latest application. This approach allowed me to build and refine various components iteratively, adapting to evolving requirements and interdependencies as they emerged.
+
+### Initial Setup and Configuration
+I started by bootstrapping the application, creating a foundational structure that, while initially minimal, laid the groundwork for future enhancements. This "empty shell" was crucial for establishing a functional environment. I then set up environment variables that would be consistently utilized throughout the application, along with a globally accessible configuration file. This setup not only streamlined the management of these variables but also enhanced the overall readability and maintainability of the code.
+
+### Database and Caching Configuration
+Next, I focused on integrating the database and caching mechanisms. I chose MongoDB for its ability to handle data in JSON format seamlessly, which aligns well with the application's data structure. For caching, I implemented Redis, a widely adopted solution known for its performance and reliability. This combination allows for efficient data retrieval and storage.
+
+To further enhance the application’s performance, I implemented a CRON job that periodically retrieves data from the REST Countries API. This background process updates both the database and the cache upon completion. Although the REST Countries API provides endpoints for most of the project’s requirements, pre-fetching all available country data and storing it locally in the database allows for greater flexibility in data access. This strategy minimizes reliance on the external API and significantly reduces database load, leading to improved response times for API calls.
+
+### Conclusion
+By adopting this incremental approach and carefully selecting the technologies and strategies employed, I was able to create a robust backend that not only meets current needs but is also adaptable for future enhancements. This project exemplifies how thoughtful planning and execution can lead to a well-structured and efficient application.
+
 
 ## Interesting Challenges
 
-* **Code Structure**: Most of the TypeScript projects I have worked on were built using [Microframework](https://www.npmjs.com/package/microframework-w3tec), which is a tool that helps with organizing bootstrap code in modules. In a way, this also helps with setting up other parts of the application in the same way and this helps with generating Swagger documentation automatically during the build process. It was a bit challenging building a TypeScript application in almost the same way you'd build a vanilla Node.js application, but I was able to take my experience from both worlds to build this MVP.
+* **Code Structure**: Most of the TypeScript projects I've worked on utilized [Microframework](https://www.npmjs.com/package/microframework-w3tec), a tool that organizes bootstrap code into modules, known as loaders. This modular approach not only simplifies the setup of various application components but also facilitates automatic Swagger documentation generation during the build process. Although building a TypeScript application in a manner similar to a vanilla Node.js app posed some challenges, I was able to leverage my experience from both environments to create a successful Minimum Viable Product (MVP).
 
-* **Redis**: So, until recently, I have only ever used Redis in its basest form. `client.set("key", "value")` for regular strings and `client.set("key", JSON.stringify(value))` for objects and arrays. I figured that there had to be a way to store JSON data more efficiently, to remove the overhead of `JSON.stringify()` and `JSON.parse()`. I discovered that Redis developed a module, RedisJSON, to help with that. The challenge came when I discovered that this module doesn't come with the regular Redis installation, and that installing this through HomeBrew wasn't as easy and straightforward. I ended up getting the installation through Docker.
+* **Redis**: My experience with Redis was initially limited to basic key-value storage, using commands like `client.set("key", "value")` for strings and `client.set("key", JSON.stringify(value))` for objects. I soon realized this approach was inefficient for handling JSON data due to the overhead of serialization. To address this, I discovered **`RedisJSON`**, a module that enables native JSON storage and manipulation. However, installing it wasn't straightforward, as it isn't included with the standard Redis setup. After some consideration, I chose to install RedisJSON via Docker, which streamlined the process. This experience significantly improved my ability to work with JSON data and deepened my understanding of Redis for developing efficient backend solutions.
 
 ## Aspects I'm Proud Of
 

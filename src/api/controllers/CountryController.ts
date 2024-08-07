@@ -3,36 +3,29 @@ import CountryService from "../services/CountryService";
 import ResponseHandler from "../handlers/ResponseHandler";
 
 
-const getCountries = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-    const response = await CountryService.getCountries(req, res);
-    return ResponseHandler.HandleResponse(res, response);
-};
+export default class CountryController {
+    public static async getCountries (req: Request, res: Response, next: NextFunction): Promise<Response> {
+        const response = await CountryService.getCountries(req, res);
+        return ResponseHandler.handleResponse(res, response);
+    }
 
-const getCountry = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-    const response = await CountryService.getCountry(req, res);
-    return ResponseHandler.HandleResponse(res, response);
-}
+    public static async getCountry (req: Request, res: Response, next: NextFunction): Promise<Response> {
+        const response = await CountryService.getCountry(req, res);
+        return ResponseHandler.handleResponse(res, response);
+    }
 
-const getRegions = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-    const response = await CountryService.getRegions(req, res);
-    return ResponseHandler.HandleResponse(res, response);
-}
+    public static async getRegions (req: Request, res: Response, next: NextFunction): Promise<Response> {
+        const response = await CountryService.getRegions(req, res);
+        return ResponseHandler.handleResponse(res, response);
+    }
 
-const getLanguages = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-    const response = await CountryService.getLanguages(req, res);
-    return ResponseHandler.HandleResponse(res, response);
-}
+    public static async getLanguages (req: Request, res: Response, next: NextFunction): Promise<Response> {
+        const response = await CountryService.getLanguages(req, res);
+        return ResponseHandler.handleResponse(res, response);
+    }
 
-const getStatistics = async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-    const response = await CountryService.getStatistics(req, res);
-    return ResponseHandler.HandleResponse(res, response);
-}
-
-
-export default {
-    getCountries,
-    getCountry,
-    getRegions,
-    getLanguages,
-    getStatistics
+    public static async getStatistics (req: Request, res: Response, next: NextFunction): Promise<Response> {
+        const response = await CountryService.getStatistics(req, res);
+        return ResponseHandler.handleResponse(res, response);
+    }
 }

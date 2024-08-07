@@ -128,7 +128,7 @@ export default class CountryService {
         }
     }
 
-    public static async getCountry(req: Request, res: Response): Promise<Response> {
+    public static async getCountry(req: Request, res: Response): Promise<ServiceResponse> {
         try {
             const { params } = req;
             const { name } = params;
@@ -151,7 +151,7 @@ export default class CountryService {
         }
     }
 
-    public static async getRegions(req: Request, res: Response): Promise<Response> {
+    public static async getRegions(req: Request, res: Response): Promise<ServiceResponse> {
         try {
             const redisKey = `regions:all`;
             const cachedResult = await CacheService.jsonGet(redisKey);
@@ -174,7 +174,7 @@ export default class CountryService {
         }
     }
 
-    public static async getLanguages(req: Request, res: Response): Promise<Response> {
+    public static async getLanguages(req: Request, res: Response): Promise<ServiceResponse> {
         try {
             const redisKey = "languages:all";
             const cachedResult = await CacheService.jsonGet(redisKey);
@@ -196,7 +196,7 @@ export default class CountryService {
         }
     }
 
-    public static async getStatistics(req: Request, res: Response): Promise<Response> {
+    public static async getStatistics(req: Request, res: Response): Promise<ServiceResponse> {
         try {
             const redisKey = "statistics:all";
             const cachedResult = await CacheService.jsonGet(redisKey);

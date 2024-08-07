@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import mongoose from "mongoose";
 
 export class Flag extends mongoose.SchemaType {

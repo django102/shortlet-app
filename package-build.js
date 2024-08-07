@@ -20,7 +20,6 @@ const build = () => {
         rimraf.sync('./.tmp');
         console.log('✔ Temporary directory removed.');
 
-        console.log("\n")
         console.log("✔ Build Completed")
         console.log("\n")
     } catch (error) {

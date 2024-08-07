@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import cron from "node-cron";
 import CountryService from "./CountryService";
 

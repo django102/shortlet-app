@@ -7,6 +7,7 @@ import { env } from "../../../src/env";
 import { Request, Response } from "express";
 import { ResponseStatus } from "../../../src/api/enums";
 
+
 describe("CountryService", () => {
     let jsonGetMock: jest.SpyInstance;
     let jsonSetMock: jest.SpyInstance;
@@ -494,7 +495,7 @@ describe("CountryService", () => {
     });
 
     describe("getCountriesFromService", () => {
-        let req: Request, res: Response;
+        let req: Partial<Request>, res: Partial<Response>;
 
         beforeAll(() => {
             req = {}; // Mock request object
@@ -516,7 +517,7 @@ describe("CountryService", () => {
             const countries = [{ name: 'CountryA' }, { name: 'CountryB' }];
             getAllCountriesFromServiceMock.mockResolvedValue(countries);
 
-            const result = await CountryService.getCountriesFromService(req, res);
+            const result = await CountryService.getCountriesFromService(req as Request, res as Response);
 
             expect(result.code).toEqual(ResponseStatus.OK);
             expect(result.data).toEqual({ count: countries.length })
@@ -526,7 +527,7 @@ describe("CountryService", () => {
             const countries = [];
             getAllCountriesFromServiceMock.mockResolvedValue(countries);
 
-            const result = await CountryService.getCountriesFromService(req, res);
+            const result = await CountryService.getCountriesFromService(req as Request, res as Response);
 
             expect(result.code).toEqual(ResponseStatus.OK);
             expect(result.data).toEqual({ count: 0 })
@@ -538,7 +539,7 @@ describe("CountryService", () => {
                 throw error;
             });
 
-            const result = await CountryService.getCountriesFromService(req, res);
+            const result = await CountryService.getCountriesFromService(req as Request, res as Response);
 
             expect(result.code).toEqual(ResponseStatus.INTERNAL_SERVER_ERROR);
         });
@@ -603,13 +604,6 @@ describe("CountryService", () => {
     //         });
 
     //         const countryMock = countryModelMock<Country>();
-
-
-
-
-
-
-
 
     //         findCountryMock.mockResolvedValue(countries);
     //         countryDbCountMock.mockResolvedValue(countries.length);
@@ -679,12 +673,10 @@ describe("CountryService", () => {
     // });
 
     describe("getCountry", () => {
-        let req: Partial<Request>;
-        let res: Partial<Response>;
+        let req: Partial<Request>, res: Partial<Response>;
 
         beforeAll(() => {
             req = {
-                query: {},
                 params: {}
             };
             res = {
@@ -707,7 +699,7 @@ describe("CountryService", () => {
             const countryName = 'CountryA';
             const cachedData = [{ data: { name: countryName } }];
             jsonGetMock.mockResolvedValue(cachedData);
-            req.params.name = countryName;
+            (req.params as object)["name"] = countryName;
 
             const result = await CountryService.getCountry(req as Request, res as Response);
 
@@ -723,7 +715,7 @@ describe("CountryService", () => {
             jsonGetMock.mockResolvedValue(null);
             jsonSetMock.mockResolvedValue(null);
             findCountryMock.mockResolvedValue(countryData);
-            req.params.name = countryName;
+            (req.params as object)["name"] = countryName;
 
             const result = await CountryService.getCountry(req as Request, res as Response);
 
@@ -738,7 +730,7 @@ describe("CountryService", () => {
             const countryName = 'CountryC';
             jsonGetMock.mockResolvedValue(null);
             findCountryMock.mockResolvedValue(null);
-            req.params.name = countryName;
+            (req.params as object)["name"] = countryName;
 
             const result = await CountryService.getCountry(req as Request, res as Response);
 
@@ -751,7 +743,7 @@ describe("CountryService", () => {
             const countryName = 'CountryD';
             const error = new Error('Database error');
             jsonGetMock.mockRejectedValue(error);
-            req.params.name = countryName;
+            (req.params as object)["name"] = countryName;
 
             const result = await CountryService.getCountry(req as Request, res as Response);
 
